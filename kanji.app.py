@@ -139,7 +139,7 @@ if menu == "🏠 ホーム":
     st.title("🏠 漢字クイズアプリへようこそ！")
     st.write("サイドバーからメニューを選んでね。")
     st.write("・「テスト開始」では全体からランダムに5問出題されます。")
-    st.write("・「復習モード」では、これまでに間違えた苦手な漢字から最大5問出題されます。")
+    st.write("・「復習モード」では、これまでに間違えた苦手な漢字から最大5問（残りが少ない場合はその数だけ）出題されます。")
     st.write("💡 **新機能**：苦手リストに入った漢字は、復習モードで**3回正解**するとリストから消えます！")
 
 elif menu == "✍️ テスト開始":
@@ -159,7 +159,9 @@ elif menu == "✍️ テスト開始":
     quiz_engine(st.session_state.test_data)
 
 elif menu == "🔥 復習モード":
-    st.title("🔥 苦手克服テスト (最大5問)")
+    # 苦手リストの数に合わせてタイトルや出題数を動的に変更
+    num_wrongs = len(st.session_state.wrong_list)
+    st.title(f"🔥 復習モード ({min(5, num_wrongs)}問)")
     
     # 苦手リストが空っぽの場合の処理
     if not st.session_state.wrong_list:
@@ -172,11 +174,11 @@ elif menu == "🔥 復習モード":
             st.session_state.answered = False
             st.session_state.mode = "review"
             
-            # 苦手リストから最大5問をランダム（またはシャッフル）して選択
+            # 苦手リストから最大5問（5個未満ならその数だけ）をシャッフルして選択
             review_data = list(st.session_state.wrong_list)
             random.shuffle(review_data)
             sample_size = min(5, len(review_data))
             st.session_state.test_data = review_data[:sample_size]
             
-        st.write(f"現在の苦手漢字から {len(st.session_state.test_data)} 問に挑戦中！")
+        st.write(f"現在の苦手漢字 {len(st.session_state.test_data)} 問に挑戦中！")
         quiz_engine(st.session_state.test_data)
