@@ -122,6 +122,13 @@ def quiz_engine(data_list):
         if st.button("次へ進む", key=f"next_{idx}"):
             st.session_state.wrong_list = [w for w in st.session_state.wrong_list if w.get('correct_count', 0) < 3]
             
+            # 復習モードの場合、進むタイミングでもテストデータを最新の苦手リスト（最大5問）に再構築する
+            if st.session_state.mode == "review":
+                review_data = list(st.session_state.wrong_list)
+                random.shuffle(review_data)
+                sample_size = min(5, len(review_data))
+                st.session_state.test_data = review_data[:sample_size]
+
             st.session_state.current_question += 1
             st.session_state.answered = False
             st.rerun()
@@ -159,15 +166,18 @@ elif menu == "✍️ テスト開始":
     quiz_engine(st.session_state.test_data)
 
 elif menu == "🔥 復習モード":
-    # 苦手リストの数に合わせてタイトルや出題数を動的に変更
+    # 苦手リストの数に合わせてタイトルを動的に変更
     num_wrongs = len(st.session_state.wrong_list)
-    st.title(f"🔥 復習モード ({min(5, num_wrongs)}問)")
+    current_target_num = min(5, num_wrongs)
+    st.title(f"🔥 復習モード ({current_target_num}問)")
     
     # 苦手リストが空っぽの場合の処理
     if not st.session_state.wrong_list:
         st.success("🎉 現在、苦手な漢字はありません！完璧です！")
+        # モードが切り替わったときに初期化しておく
+        st.session_state.mode = "review"
     else:
-        # 復習モード開始時の初期化
+        # 復習モード開始時、またはメニューを切り替えた直後の初期化
         if 'mode' not in st.session_state or st.session_state.mode != "review":
             st.session_state.current_question = 0
             st.session_state.score = 0
