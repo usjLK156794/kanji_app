@@ -120,17 +120,8 @@ def quiz_engine(data_list):
         else:
             st.error(f"❌ 残念！ 正解は「 {current_q['read']} 」でした。")
 
-        # 「次へ進む」ボタンを押したときに次の問題へ進む
+        # 「次へ進む」ボタンを押したときに次の問題へ進む（問題リスト自体は固定のまま変えない）
         if st.button("次へ進む", key=f"next_{idx}"):
-            st.session_state.wrong_list = [w for w in st.session_state.wrong_list if w.get('correct_count', 0) < 3]
-            
-            # 復習モードの場合、進むタイミングでリストが減っていたらテストデータもそれに合わせて調整
-            if st.session_state.mode == "review":
-                review_data = list(st.session_state.wrong_list)
-                random.shuffle(review_data)
-                sample_size = min(5, len(review_data))
-                st.session_state.test_data = review_data[:sample_size]
-
             st.session_state.current_question += 1
             st.session_state.answered = False
             st.rerun()
