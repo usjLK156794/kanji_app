@@ -1,5 +1,4 @@
 import streamlit as st
-
 import random
 
 # data.py から KANJI_LIST を読み込む
@@ -34,7 +33,7 @@ def quiz_engine(data_list):
     # すべての問題が終わったかチェック
     if st.session_state.current_question >= len(data_list):
         st.balloons()
-        st.success(st.session_state.wrong_list)
+        # st.success(...) の行を削除しました
         st.write(f"🎉 テスト終了！ あなたのスコアは {st.session_state.score} / {len(data_list)} です！")
         
         # 苦手リストの現在の状態を表示
@@ -82,7 +81,6 @@ def quiz_engine(data_list):
             else:
                 st.session_state.is_correct = False
                 # 間違えた場合：通常テストでも復習モードでも、苦手リストに未登録なら追加
-                # 正解カウント(correct_count)を0で初期化して登録
                 if not any(w['kanji'] == current_q['kanji'] for w in st.session_state.wrong_list):
                     st.session_state.wrong_list.append({
                         'kanji': current_q['kanji'],
@@ -90,7 +88,7 @@ def quiz_engine(data_list):
                         'correct_count': 0
                     })
                 else:
-                    # すでにリストにあって、間違えた場合は正解カウンターをリセット（厳しくする場合）
+                    # すでにリストにあって、間違えた場合は正解カウンターをリセット
                     for w in st.session_state.wrong_list:
                         if w['kanji'] == current_q['kanji']:
                             w['correct_count'] = 0
@@ -108,7 +106,6 @@ def quiz_engine(data_list):
                     'correct_count': 0
                 })
             else:
-                # わからないを押した場合もカウンターをリセット
                 for w in st.session_state.wrong_list:
                     if w['kanji'] == current_q['kanji']:
                         w['correct_count'] = 0
@@ -122,7 +119,6 @@ def quiz_engine(data_list):
 
         # 「次へ進む」ボタンを押したときに、3回正解した漢字を削除する判定を行う
         if st.button("次へ進む", key=f"next_{idx}"):
-            # 3回正解した漢字を苦手リストから削除
             st.session_state.wrong_list = [w for w in st.session_state.wrong_list if w.get('correct_count', 0) < 3]
             
             st.session_state.current_question += 1
@@ -148,14 +144,12 @@ if menu == "🏠 ホーム":
 elif menu == "✍️ テスト開始":
     st.title("✍️ 実力テスト (10問)")
     
-    # テスト開始時の初期化
     if 'mode' not in st.session_state or st.session_state.mode != "test":
         st.session_state.current_question = 0
         st.session_state.score = 0
         st.session_state.answered = False
         st.session_state.mode = "test"
         
-        # 全データから10問をランダムに選んで固定
         sample_size = min(10, len(st.session_state.all_kanji_data))
         st.session_state.test_data = random.sample(st.session_state.all_kanji_data, sample_size)
     
@@ -164,19 +158,15 @@ elif menu == "✍️ テスト開始":
 elif menu == "🔥 復習モード":
     st.title("🔥 苦手克服テスト")
     
-    # 苦手リストが空っぽの場合の処理
     if not st.session_state.wrong_list:
         st.success("🎉 現在、苦手な漢字はありません！完璧です！")
     else:
-        # 復習モード開始時の初期化
         if 'mode' not in st.session_state or st.session_state.mode != "review":
             st.session_state.current_question = 0
             st.session_state.score = 0
             st.session_state.answered = False
             st.session_state.mode = "review"
             
-            # 苦手リストに入っている漢字をシャッフルして今回のテストデータにする
-            # リストのコピーを作ってシャッフル
             review_data = list(st.session_state.wrong_list)
             random.shuffle(review_data)
             st.session_state.test_data = review_data
