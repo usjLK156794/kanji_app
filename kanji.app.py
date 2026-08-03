@@ -33,7 +33,6 @@ def quiz_engine(data_list):
     # すべての問題が終わったかチェック
     if st.session_state.current_question >= len(data_list):
         st.balloons()
-        # st.success(...) の行を削除しました
         st.write(f"🎉 テスト終了！ あなたのスコアは {st.session_state.score} / {len(data_list)} です！")
         
         # 苦手リストの現在の状態を表示
@@ -137,20 +136,22 @@ with st.sidebar:
 if menu == "🏠 ホーム":
     st.title("🏠 漢字クイズアプリへようこそ！")
     st.write("サイドバーからメニューを選んでね。")
-    st.write("・「テスト開始」では全体からランダムに10問出題されます。")
+    st.write("・「テスト開始」では全体からランダムに5問出題されます。")
     st.write("・「復習モード」では、これまでに間違えた苦手な漢字だけが出題されます。")
     st.write("💡 **新機能**：苦手リストに入った漢字は、復習モードで**3回正解**するとリストから消えます！")
 
 elif menu == "✍️ テスト開始":
-    st.title("✍️ 実力テスト (10問)")
+    st.title("✍️ 実力テスト (5問)")
     
+    # テスト開始時の初期化
     if 'mode' not in st.session_state or st.session_state.mode != "test":
         st.session_state.current_question = 0
         st.session_state.score = 0
         st.session_state.answered = False
         st.session_state.mode = "test"
         
-        sample_size = min(10, len(st.session_state.all_kanji_data))
+        # 全データから5問をランダムに選んで固定
+        sample_size = min(5, len(st.session_state.all_kanji_data))
         st.session_state.test_data = random.sample(st.session_state.all_kanji_data, sample_size)
     
     quiz_engine(st.session_state.test_data)
@@ -158,15 +159,18 @@ elif menu == "✍️ テスト開始":
 elif menu == "🔥 復習モード":
     st.title("🔥 苦手克服テスト")
     
+    # 苦手リストが空っぽの場合の処理
     if not st.session_state.wrong_list:
         st.success("🎉 現在、苦手な漢字はありません！完璧です！")
     else:
+        # 復習モード開始時の初期化
         if 'mode' not in st.session_state or st.session_state.mode != "review":
             st.session_state.current_question = 0
             st.session_state.score = 0
             st.session_state.answered = False
             st.session_state.mode = "review"
             
+            # 苦手リストに入っている漢字をシャッフルして今回のテストデータにする
             review_data = list(st.session_state.wrong_list)
             random.shuffle(review_data)
             st.session_state.test_data = review_data
