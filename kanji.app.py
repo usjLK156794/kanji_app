@@ -77,6 +77,8 @@ def quiz_engine(data_list):
                         if w['kanji'] == current_q['kanji']:
                             w['correct_count'] = w.get('correct_count', 0) + 1
                             break
+                    # 3回正解したものをその場で苦手リストから削除
+                    st.session_state.wrong_list = [w for w in st.session_state.wrong_list if w.get('correct_count', 0) < 3]
             else:
                 st.session_state.is_correct = False
                 # 間違えた場合：通常テストでも復習モードでも、苦手リストに未登録なら追加
@@ -116,7 +118,7 @@ def quiz_engine(data_list):
         else:
             st.error(f"❌ 残念！ 正解は「 {current_q['read']} 」でした。")
 
-        # 「次へ進む」ボタンを押したときに、3回正解した漢字を削除する判定を行う
+        # 「次へ進む」ボタンを押したときに次の問題へ進む
         if st.button("次へ進む", key=f"next_{idx}"):
             st.session_state.wrong_list = [w for w in st.session_state.wrong_list if w.get('correct_count', 0) < 3]
             
@@ -137,7 +139,7 @@ if menu == "🏠 ホーム":
     st.title("🏠 漢字クイズアプリへようこそ！")
     st.write("サイドバーからメニューを選んでね。")
     st.write("・「テスト開始」では全体からランダムに5問出題されます。")
-    st.write("・「復習モード」では、これまでに間違えた苦手な漢字だけが出題されます。")
+    st.write("・「復習モード」では、これまでに間違えた苦手な漢字から最大5問出題されます。")
     st.write("💡 **新機能**：苦手リストに入った漢字は、復習モードで**3回正解**するとリストから消えます！")
 
 elif menu == "✍️ テスト開始":
@@ -157,7 +159,7 @@ elif menu == "✍️ テスト開始":
     quiz_engine(st.session_state.test_data)
 
 elif menu == "🔥 復習モード":
-    st.title("🔥 苦手克服テスト")
+    st.title("🔥 苦手克服テスト (最大5問)")
     
     # 苦手リストが空っぽの場合の処理
     if not st.session_state.wrong_list:
@@ -170,10 +172,11 @@ elif menu == "🔥 復習モード":
             st.session_state.answered = False
             st.session_state.mode = "review"
             
-            # 苦手リストに入っている漢字をシャッフルして今回のテストデータにする
+            # 苦手リストから最大5問をランダム（またはシャッフル）して選択
             review_data = list(st.session_state.wrong_list)
             random.shuffle(review_data)
-            st.session_state.test_data = review_data
+            sample_size = min(5, len(review_data))
+            st.session_state.test_data = review_data[:sample_size]
             
-        st.write(f"現在の苦手漢字 {len(st.session_state.test_data)} 問に挑戦中！")
+        st.write(f"現在の苦手漢字から {len(st.session_state.test_data)} 問に挑戦中！")
         quiz_engine(st.session_state.test_data)
