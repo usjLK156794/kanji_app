@@ -1,1 +1,22 @@
+name: Keep Streamlit Alive via Auto Commit
 
+on:
+  schedule:
+    # 6時間おき（0:00, 6:00, 12:00, 18:00 UTC）に実行
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # 手動実行ボタンも有効化
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # リポジトリへの書き込み権限を付与
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dummy Commit to Trigger Rebuild
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "Chore: Auto keep-alive rebuild"
+          git push
